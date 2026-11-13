@@ -16,13 +16,13 @@
             <directory>packages/bundle/tests</directory>
         </testsuite>
         <testsuite name="symfony-ai">
-            <directory>packages/symfony-ai/tests</directory>
+            <directory>packages/symfony-ai-bridge/tests</directory>
         </testsuite>
     </testsuites>
     <source>
         <include>
             <directory>packages/core/src</directory>
-            <directory>packages/symfony-ai/src</directory>
+            <directory>packages/symfony-ai-bridge/src</directory>
             <directory>packages/bundle/src</directory>
         </include>
     </source>

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AgUi\Bundle\Tests;
 
+use AgUi\Bridge\SymfonyAi\Context\AgentContext;
 use AgUi\Bundle\Tests\App\Cart;
 use AgUi\Bundle\Tests\App\Context\ShopHours;
 use AgUi\Bundle\Tests\App\Kernel;
 use AgUi\Bundle\Tests\App\ScriptedPlatform;
 use AgUi\Run\RunAgentInput;
-use AgUi\SymfonyAi\Context\AgentContext;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
@@ -163,6 +163,16 @@ final class AgUiBundleTest extends WebTestCase
         $client->request('POST', '/agent/shop', server: ['CONTENT_TYPE' => 'application/json'], content: json_encode(['threadId' => 't', 'runId' => 'r', 'messages' => [], 'state' => ['skus' => 'not a list']], \JSON_THROW_ON_ERROR));
 
         self::assertResponseStatusCodeSame(422);
+    }
+
+    public function testTheStimulusControllersAreServedByAssetMapper(): void
+    {
+        $assets = self::getContainer()->get('asset_mapper');
+        \assert($assets instanceof \Symfony\Component\AssetMapper\AssetMapperInterface);
+
+        foreach (['client_controller.js', 'activities_controller.js', 'client.js'] as $file) {
+            self::assertNotNull($assets->getAsset('@webmamba/ag-ui-bundle/'.$file), $file);
+        }
     }
 
     /**

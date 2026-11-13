@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace AgUi\Bundle;
 
+use AgUi\Bridge\SymfonyAi\AgUi;
+use AgUi\Bridge\SymfonyAi\Interrupt\ResumableTool;
+use AgUi\Bridge\SymfonyAi\Interrupt\ResumableTools;
+use AgUi\Bridge\SymfonyAi\Mapping\ToolResultMapping;
+use AgUi\Bridge\SymfonyAi\Run\RunContext;
+use AgUi\Bridge\SymfonyAi\Run\RunScope;
 use AgUi\Bundle\Attribute\AsAgentComponent;
 use AgUi\Bundle\Attribute\AsAgentContext;
 use AgUi\Bundle\Component\AgentComponentToolbox;
@@ -13,12 +19,6 @@ use AgUi\Bundle\DependencyInjection\Compiler\AgentContextPass;
 use AgUi\Bundle\DependencyInjection\Compiler\WireAgentsPass;
 use AgUi\Bundle\Http\RunAgentInputValueResolver;
 use AgUi\Stream\RunStream;
-use AgUi\SymfonyAi\AgUi;
-use AgUi\SymfonyAi\Interrupt\ResumableTool;
-use AgUi\SymfonyAi\Interrupt\ResumableTools;
-use AgUi\SymfonyAi\Mapping\ToolResultMapping;
-use AgUi\SymfonyAi\Run\RunContext;
-use AgUi\SymfonyAi\Run\RunScope;
 use Symfony\Component\AssetMapper\AssetMapperInterface;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -49,6 +49,9 @@ final class AgUiBundle extends AbstractBundle
 {
     protected string $extensionAlias = 'ag_ui';
 
+    /** What may require an optional package for the bundle: the bundle itself, or the monorepo it is developed in. */
+    private const array PACKAGES = ['webmamba/ag-ui-bundle', 'webmamba/ag-ui-php'];
+
     /** @param array<string, mixed> $config */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
@@ -78,7 +81,7 @@ final class AgUiBundle extends AbstractBundle
             ]);
         });
 
-        if (interface_exists(ComponentRendererInterface::class)) {
+        if (ContainerBuilder::willBeAvailable('symfony/ux-twig-component', ComponentRendererInterface::class, self::PACKAGES)) {
             $services->set('ag_ui.component_activity_factory', ComponentActivityFactory::class)->args([new Reference(ComponentRendererInterface::class)]);
             $services->alias(ComponentActivityFactory::class, 'ag_ui.component_activity_factory');
             $services->set('ag_ui.agent_components', AgentComponentToolbox::class)->args([
@@ -109,7 +112,7 @@ final class AgUiBundle extends AbstractBundle
     /** The Stimulus controllers in assets/, for AssetMapper to serve (as Symfony UX packages do). */
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        if (!interface_exists(AssetMapperInterface::class)) {
+        if (!ContainerBuilder::willBeAvailable('symfony/asset-mapper', AssetMapperInterface::class, self::PACKAGES)) {
             return;
         }
 

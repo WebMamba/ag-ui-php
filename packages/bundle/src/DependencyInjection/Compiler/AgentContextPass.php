@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AgUi\Bundle\DependencyInjection\Compiler;
 
-use AgUi\SymfonyAi\Context\AgentContext;
-use AgUi\SymfonyAi\Context\ContextEntry;
+use AgUi\Bridge\SymfonyAi\Context\AgentContext;
+use AgUi\Bridge\SymfonyAi\Context\ContextEntry;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;

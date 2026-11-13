@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AgUi\Bundle\Component;
 
-use AgUi\SymfonyAi\Activity\Activity;
+use AgUi\Bridge\SymfonyAi\Activity\Activity;
 use Symfony\UX\TwigComponent\ComponentRendererInterface;
 
 /**

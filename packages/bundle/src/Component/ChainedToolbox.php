@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AgUi\Bundle\Component;
 
-use AgUi\SymfonyAi\Run\RunScope;
+use AgUi\Bridge\SymfonyAi\Run\RunScope;
 use Symfony\AI\Agent\Toolbox\ToolboxInterface;
 use Symfony\AI\Agent\Toolbox\ToolResult;
 use Symfony\AI\Platform\Result\ToolCall;

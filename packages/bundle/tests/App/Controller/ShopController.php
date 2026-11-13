@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AgUi\Bundle\Tests\App\Controller;
 
+use AgUi\Bridge\SymfonyAi\AgUi;
+use AgUi\Bridge\SymfonyAi\Exception\InvalidStateException;
 use AgUi\Bundle\Http\AgUiResponse;
 use AgUi\Bundle\Tests\App\Cart;
 use AgUi\Run\RunAgentInput;
-use AgUi\SymfonyAi\AgUi;
-use AgUi\SymfonyAi\Exception\InvalidStateException;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;

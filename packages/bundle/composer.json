@@ -1,15 +1,22 @@
 {
     "name": "webmamba/ag-ui-bundle",
-    "description": "Symfony bundle for AG-UI: every Symfony AI agent speaks the AG-UI protocol, run by the route that picks it. Twig components become generative UI.",
+    "description": "Provides a tight integration of AG-UI into the Symfony full-stack framework: every Symfony AI agent speaks AG-UI, Twig components become generative UI, and a Stimulus client renders it.",
     "type": "symfony-bundle",
     "keywords": [
         "ag-ui",
         "symfony-ai",
         "symfony-ux",
+        "bundle",
         "agent",
         "ai"
     ],
+    "homepage": "https://github.com/WebMamba/ag-ui-php",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Matheo Daninos"
+        }
+    ],
     "require": {
         "php": ">=8.4",
         "symfony/ai-bundle": "^1.0@beta",
@@ -19,7 +26,7 @@
         "symfony/http-kernel": "^8.0",
         "symfony/routing": "^8.0",
         "webmamba/ag-ui": "self.version",
-        "webmamba/ag-ui-symfony-ai": "self.version"
+        "webmamba/ag-ui-symfony-ai-bridge": "self.version"
     },
     "suggest": {
         "symfony/ux-twig-component": "To expose Twig components to the model with #[AsAgentComponent].",

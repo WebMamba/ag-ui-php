@@ -23,6 +23,7 @@
         "symfony/ai-agent": "^1.0@beta",
         "symfony/ai-bundle": "^1.0@beta",
         "symfony/ai-platform": "^1.0@beta",
+        "symfony/asset-mapper": "^8.0",
         "symfony/browser-kit": "^8.0",
         "symfony/framework-bundle": "^8.0",
         "symfony/twig-bundle": "^8.0",
@@ -31,7 +32,7 @@
     "autoload": {
         "psr-4": {
             "AgUi\\": "packages/core/src/",
-            "AgUi\\SymfonyAi\\": "packages/symfony-ai/src/",
+            "AgUi\\Bridge\\SymfonyAi\\": "packages/symfony-ai-bridge/src/",
             "AgUi\\Bundle\\": "packages/bundle/src/"
         }
     },
@@ -39,7 +40,7 @@
         "psr-4": {
             "AgUi\\Tests\\": "packages/core/tests/",
             "AgUi\\Tools\\": "tools/",
-            "AgUi\\SymfonyAi\\Tests\\": "packages/symfony-ai/tests/",
+            "AgUi\\Bridge\\SymfonyAi\\Tests\\": "packages/symfony-ai-bridge/tests/",
             "AgUi\\Bundle\\Tests\\": "packages/bundle/tests/"
         }
     },

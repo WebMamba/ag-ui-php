@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AgUi\Bundle\DependencyInjection\Compiler;
 
+use AgUi\Bridge\SymfonyAi\InputProcessor\RunInstructionsProcessor;
+use AgUi\Bridge\SymfonyAi\Toolbox\AgUiToolExecutor;
+use AgUi\Bridge\SymfonyAi\Toolbox\FrontendToolbox;
 use AgUi\Bundle\Component\ChainedToolbox;
-use AgUi\SymfonyAi\InputProcessor\RunInstructionsProcessor;
-use AgUi\SymfonyAi\Toolbox\AgUiToolExecutor;
-use AgUi\SymfonyAi\Toolbox\FrontendToolbox;
 use Symfony\AI\Agent\Agent;
 use Symfony\AI\Agent\Toolbox\Toolbox;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
