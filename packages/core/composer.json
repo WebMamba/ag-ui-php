@@ -1,0 +1,28 @@
+{
+    "name": "webmamba/ag-ui",
+    "description": "The AG-UI protocol for PHP: events, run agent input, SSE encoding and event stream verification.",
+    "type": "library",
+    "keywords": [
+        "ag-ui",
+        "agent",
+        "ai",
+        "sse",
+        "protocol"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": ">=8.4",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
+        "symfony/clock": "^8.0",
+        "symfony/serializer": "^8.0",
+        "symfony/validator": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AgUi\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

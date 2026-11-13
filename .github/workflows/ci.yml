@@ -1,0 +1,49 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+permissions:
+    contents: read
+
+jobs:
+    php:
+        name: PHP ${{ matrix.php }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                php: ['8.4', '8.5']
+        steps:
+            - uses: actions/checkout@v4
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  coverage: none
+            - uses: ramsey/composer-install@v3
+            - name: Tests
+              run: vendor/bin/phpunit
+            - name: Static analysis
+              run: vendor/bin/phpstan analyse --no-progress
+            - name: Coding standard
+              if: matrix.php == '8.4'
+              run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+    js:
+        name: Browser client
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: packages/bundle/assets
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+                  cache-dependency-path: packages/bundle/assets/package-lock.json
+            - run: npm ci
+            - name: Tests (with the AG-UI conformance corpus)
+              run: npm test

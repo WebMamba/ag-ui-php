@@ -1,0 +1,44 @@
+{
+    "name": "@webmamba/ag-ui-bundle",
+    "description": "AG-UI client for Symfony: one DOM event per AG-UI event.",
+    "license": "MIT",
+    "private": true,
+    "type": "module",
+    "main": "src/client.js",
+    "scripts": {
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "fast-json-patch": "^3.1.1"
+    },
+    "devDependencies": {
+        "@hotwired/stimulus": "^3.2.2",
+        "jsdom": "^26.1.0",
+        "vitest": "^3.2.4"
+    },
+    "peerDependencies": {
+        "@hotwired/stimulus": "^3.0.0"
+    },
+    "symfony": {
+        "controllers": {
+            "client": {
+                "main": "src/client_controller.js",
+                "name": "ag-ui",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            },
+            "activities": {
+                "main": "src/activities_controller.js",
+                "name": "ag-ui-activities",
+                "webpackMode": "eager",
+                "fetch": "eager",
+                "enabled": true
+            }
+        },
+        "importmap": {
+            "@hotwired/stimulus": "^3.0.0",
+            "fast-json-patch": "^3.1.1"
+        }
+    }
+}
