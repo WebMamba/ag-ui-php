@@ -27,6 +27,12 @@ jobs:
                     - { directory: packages/symfony-ai-bridge, repository: ag-ui-symfony-ai-bridge }
                     - { directory: packages/bundle, repository: ag-ui-bundle }
         steps:
+            - name: Check the token
+              env:
+                  SPLIT_TOKEN: ${{ secrets.SPLIT_TOKEN }}
+              run: |
+                  test -n "$SPLIT_TOKEN" || { echo '::error::SPLIT_TOKEN is empty, the split repositories cannot be pushed to.'; exit 1; }
+
             - uses: actions/checkout@v4
               with:
                   fetch-depth: 0
@@ -57,3 +63,11 @@ jobs:
                   tag: ${{ github.ref_name }}
                   user_name: github-actions[bot]
                   user_email: 41898282+github-actions[bot]@users.noreply.github.com
+
+            # The action reports success even when its push fails: check what it pushed.
+            - name: Check the split
+              env:
+                  REF: ${{ github.ref_type == 'tag' && format('refs/tags/{0}', github.ref_name) || 'refs/heads/main' }}
+                  REPOSITORY: https://github.com/WebMamba/${{ matrix.package.repository }}.git
+              run: |
+                  test -n "$(git ls-remote "$REPOSITORY" "$REF")" || { echo "::error::$REF was not pushed to $REPOSITORY."; exit 1; }
