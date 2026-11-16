@@ -97,6 +97,7 @@ final class AgUiBundle extends AbstractBundle
         }
 
         $services->set('ag_ui', AgUi::class)->args([
+            '$secret' => '%kernel.secret%',
             '$scope' => new Reference('ag_ui.run_scope'),
             '$resumableTools' => new Reference('ag_ui.resumable_tools'),
             '$mappings' => new TaggedIteratorArgument('ag_ui.tool_result_mapping'),

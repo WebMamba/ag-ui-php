@@ -28,7 +28,7 @@ use AgUi\Run\RunAgentInput;
 use Symfony\AI\Agent\Agent;
 use Symfony\AI\Agent\Toolbox\Toolbox;
 
-$agUi = new AgUi();
+$agUi = new AgUi(secret: $_ENV['APP_SECRET']); // signs the interrupts: the same on every server
 $toolbox = $agUi->toolbox(new Toolbox([new GetForecast()]));
 $agent = new Agent($platform, 'claude-sonnet-5-5',
     inputProcessors: [$agUi->inputProcessor()],

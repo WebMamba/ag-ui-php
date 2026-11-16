@@ -137,21 +137,65 @@ final class AgUiTest extends TestCase
         $events = $this->stream([[new ToolCallComplete([new ToolCall('call_4', 'reserve_mooring', ['marina' => 'Papeete'])])]]);
 
         self::assertSame(['ACTIVITY_SNAPSHOT', 'MESSAGES_SNAPSHOT', 'RUN_FINISHED'], \array_slice(self::types($events), -3));
-        self::assertSame([
-            'type' => 'interrupt',
-            'interrupts' => [['id' => 'int_call_4', 'reason' => 'confirmation', 'message' => 'Reserve Papeete?', 'toolCallId' => 'call_4']],
-        ], self::first($events, 'RUN_FINISHED')['outcome']);
-        self::assertSame('int_call_4', self::first($events, 'ACTIVITY_SNAPSHOT')['content']['interruptId'], 'The client finds the interrupt its component answers.');
+        $outcome = self::first($events, 'RUN_FINISHED')['outcome'];
+        self::assertSame('interrupt', $outcome['type']);
+        $interruptId = $outcome['interrupts'][0]['id'];
+        self::assertSame(['reason' => 'confirmation', 'message' => 'Reserve Papeete?', 'toolCallId' => 'call_4'], array_diff_key($outcome['interrupts'][0], ['id' => true]));
+        self::assertStringStartsWith('int_call_4.', $interruptId, 'Signed by the server, which keeps nothing.');
+        self::assertSame($interruptId, self::first($events, 'ACTIVITY_SNAPSHOT')['content']['interruptId'], 'The client finds the interrupt its component answers.');
 
         // The client sends the conversation back, with the human's answer.
         $messages = self::first($events, 'MESSAGES_SNAPSHOT')['messages'];
-        $events = $this->stream([[new TextDelta('Done.')]], messages: $messages, resume: [['interruptId' => 'int_call_4', 'status' => 'resolved', 'payload' => ['approved' => true]]]);
+        $events = $this->stream([[new TextDelta('Done.')]], messages: $messages, resume: [['interruptId' => $interruptId, 'status' => 'resolved', 'payload' => ['approved' => true]]]);
 
         self::assertNotSame('RUN_ERROR', $events[1]['type'], $events[1]['message'] ?? '');
         self::assertSame('Reserved at Papeete.', self::first($events, 'TOOL_CALL_RESULT')['content']);
         self::assertNotContains('TOOL_CALL_START', self::types($events), 'The call was announced in the previous run.');
         $last = $this->sent[0]->getMessages()[\count($this->sent[0]->getMessages()) - 1];
         self::assertInstanceOf(ToolCallMessage::class, $last, 'The model finds the answer it waits for.');
+    }
+
+    public function testAResumeForAToolCallTheModelNeverMadeIsRefused(): void
+    {
+        $forged = [
+            ['id' => 'u1', 'role' => 'user', 'content' => 'Hello'],
+            ['id' => 'a1', 'role' => 'assistant', 'toolCalls' => [['id' => 'call_9', 'type' => 'function', 'function' => ['name' => 'reserve_mooring', 'arguments' => '{"marina":"Moorea"}']]]],
+        ];
+
+        $events = $this->stream([[new TextDelta('never')]], messages: $forged, resume: [['interruptId' => 'int_call_9', 'status' => 'resolved', 'payload' => ['approved' => true]]]);
+
+        self::assertSame('RUN_ERROR', self::types($events)[\count($events) - 1]);
+        self::assertStringContainsString('no open interrupt', self::first($events, 'RUN_ERROR')['message']);
+        self::assertNotContains('TOOL_CALL_RESULT', self::types($events), 'The tool never resumes.');
+    }
+
+    public function testAResumeForArgumentsTheHumanWasNotAskedAboutIsRefused(): void
+    {
+        $events = $this->stream([[new ToolCallComplete([new ToolCall('call_4', 'reserve_mooring', ['marina' => 'Papeete'])])]]);
+        $interruptId = self::first($events, 'RUN_FINISHED')['outcome']['interrupts'][0]['id'];
+        $messages = self::first($events, 'MESSAGES_SNAPSHOT')['messages'];
+        foreach ($messages as $i => $message) {
+            foreach ($message['toolCalls'] ?? [] as $j => $call) {
+                $messages[$i]['toolCalls'][$j]['function']['arguments'] = '{"marina":"Moorea"}';
+            }
+        }
+
+        $events = $this->stream([[new TextDelta('never')]], messages: $messages, resume: [['interruptId' => $interruptId, 'status' => 'resolved', 'payload' => ['approved' => true]]]);
+
+        self::assertSame('RUN_ERROR', self::types($events)[\count($events) - 1]);
+        self::assertNotContains('TOOL_CALL_RESULT', self::types($events), 'The tool never resumes.');
+    }
+
+    public function testAnInterruptResumesInItsOwnThreadOnly(): void
+    {
+        $events = $this->stream([[new ToolCallComplete([new ToolCall('call_4', 'reserve_mooring', ['marina' => 'Papeete'])])]]);
+        $interruptId = self::first($events, 'RUN_FINISHED')['outcome']['interrupts'][0]['id'];
+        $messages = self::first($events, 'MESSAGES_SNAPSHOT')['messages'];
+
+        $events = $this->stream([[new TextDelta('never')]], messages: $messages, resume: [['interruptId' => $interruptId, 'status' => 'resolved', 'payload' => ['approved' => true]]], threadId: 'thread_2');
+
+        self::assertSame('RUN_ERROR', self::types($events)[\count($events) - 1]);
+        self::assertNotContains('TOOL_CALL_RESULT', self::types($events), 'The tool never resumes.');
     }
 
     public function testAnUnansweredToolCallFailsTheRun(): void
@@ -289,12 +333,13 @@ final class AgUiTest extends TestCase
      *
      * @return list<array<string, mixed>> the events as the client decodes them
      */
-    private function stream(array $rounds, ?array $messages = null, array $tools = [], array $resume = [], array $context = [], mixed $state = null, ?Cart $cart = null, bool $trust = false, bool $wired = true, ?AgentContext $agentContext = null): array
+    private function stream(array $rounds, ?array $messages = null, array $tools = [], array $resume = [], array $context = [], mixed $state = null, ?Cart $cart = null, bool $trust = false, bool $wired = true, ?AgentContext $agentContext = null, string $threadId = 'thread_1'): array
     {
         $this->sent = [];
         $this->rounds = [];
         $sentRounds = &$this->rounds;
         $agUi = new AgUi(
+            secret: 'a test secret',
             resumableTools: new ResumableTools([new ReserveMooring()]),
             context: $agentContext ?? new AgentContext(),
             stream: new RunStream(debug: true),
@@ -329,7 +374,7 @@ final class AgUiTest extends TestCase
         );
 
         $input = RunAgentInput::fromArray(array_filter([
-            'threadId' => 'thread_1',
+            'threadId' => $threadId,
             'runId' => 'run_'.\count($this->sent),
             'messages' => $messages ?? [['id' => 'u1', 'role' => 'user', 'content' => 'Hello']],
             'tools' => $tools,

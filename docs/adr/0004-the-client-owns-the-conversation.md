@@ -2,8 +2,8 @@
 
 The server keeps nothing between runs: every run agent input carries the whole thread,
 and the bridge rebuilds the agent's message bag from it. Interrupts and frontend tools
-need no storage either — an interrupt's id is derived from its tool call's id, and the
-open tool call is in the messages the client sends back. It is what the protocol
+need no storage either — an interrupt's id is derived from its tool call and signed
+(ADR 0009), and the open tool call is in the messages the client sends back. It is what the protocol
 assumes, so it works with any AG-UI client, and a run can land on any server instance.
 
 ## Considered Options

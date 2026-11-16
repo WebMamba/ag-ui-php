@@ -10,6 +10,7 @@ use AgUi\Bridge\SymfonyAi\Context\AgentContext;
 use AgUi\Bridge\SymfonyAi\Exception\InvalidStateException;
 use AgUi\Bridge\SymfonyAi\Exception\MisconfiguredAgentException;
 use AgUi\Bridge\SymfonyAi\Interrupt\Interrupt;
+use AgUi\Bridge\SymfonyAi\Interrupt\InterruptSigner;
 use AgUi\Bridge\SymfonyAi\Interrupt\ResumableToolLocator;
 use AgUi\Bridge\SymfonyAi\Mapping\ToolResultMapping;
 use AgUi\Bridge\SymfonyAi\Message\MessageBagFactory;
@@ -96,6 +97,7 @@ final readonly class AgentRun
         private AgentContext $context,
         private RunStream $stream,
         private ToolResultConverter $converter,
+        private InterruptSigner $interrupts,
     ) {
     }
 
@@ -285,7 +287,7 @@ final readonly class AgentRun
                                 // the human answers through knows which interrupt it resumes.
                                 $activity = new Activity($interrupt->activity->forModel, $interrupt->activity->type, [
                                     ...$interrupt->activity->content,
-                                    'interruptId' => self::interruptId($interrupted->getToolCall()),
+                                    'interruptId' => $this->interruptId($interrupted->getToolCall()),
                                 ]);
                                 yield from $this->activity(self::activityId($interrupted->getToolCall()), $activity, $transcript);
                             }
@@ -323,7 +325,7 @@ final readonly class AgentRun
         foreach ($input->resume ?? [] as $resume) {
             $toolCall = null;
             foreach ($open as $candidate) {
-                if (self::interruptId($candidate) === $resume->interruptId) {
+                if ($this->interrupts->answers($resume->interruptId, $input->threadId, $candidate)) {
                     $toolCall = $candidate;
                 }
             }
@@ -439,13 +441,15 @@ final readonly class AgentRun
         return $instructions;
     }
 
-    /** @return array<string, true> the tool call ids this run's resumes answer */
+    /** @return array<string, true> the open tool call ids this run's resumes answer */
     private function resumedIds(RunAgentInput $input): array
     {
         $ids = [];
-        foreach ($input->resume ?? [] as $resume) {
-            if (str_starts_with($resume->interruptId, 'int_')) {
-                $ids[substr($resume->interruptId, 4)] = true;
+        foreach (MessageBagFactory::openToolCalls($input->messages) as $id => $toolCall) {
+            foreach ($input->resume ?? [] as $resume) {
+                if ($this->interrupts->answers($resume->interruptId, $input->threadId, $toolCall)) {
+                    $ids[$id] = true;
+                }
             }
         }
 
@@ -458,7 +462,7 @@ final readonly class AgentRun
         \assert($interrupt instanceof Interrupt);
 
         return new InterruptDescription(
-            id: self::interruptId($interrupted->getToolCall()),
+            id: $this->interruptId($interrupted->getToolCall()),
             reason: $interrupt->reason,
             message: $interrupt->message,
             toolCallId: $interrupted->getToolCall()->getId(),
@@ -467,10 +471,12 @@ final readonly class AgentRun
         );
     }
 
-    /** Derived from the tool call, so the next run finds the call without server state. */
-    private static function interruptId(ToolCall $toolCall): string
+    /** Signed, so the next run trusts its resume without server state. */
+    private function interruptId(ToolCall $toolCall): string
     {
-        return 'int_'.$toolCall->getId();
+        $input = $this->scope->input() ?? throw new \LogicException('An interrupt is described during its run only.');
+
+        return $this->interrupts->id($input->threadId, $toolCall);
     }
 
     private static function activityId(ToolCall $toolCall): string

@@ -6,6 +6,7 @@ namespace AgUi\Bridge\SymfonyAi;
 
 use AgUi\Bridge\SymfonyAi\Context\AgentContext;
 use AgUi\Bridge\SymfonyAi\InputProcessor\RunInstructionsProcessor;
+use AgUi\Bridge\SymfonyAi\Interrupt\InterruptSigner;
 use AgUi\Bridge\SymfonyAi\Interrupt\ResumableToolLocator;
 use AgUi\Bridge\SymfonyAi\Mapping\ToolResultMapping;
 use AgUi\Bridge\SymfonyAi\Run\AgentRun;
@@ -41,11 +42,16 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 final readonly class AgUi
 {
+    private InterruptSigner $interrupts;
+
     /**
+     * @param string $secret signs the interrupts' ids, so a resume is trusted without
+     *                       server state: the same on every server that may run a thread
      * @param iterable<ToolResultMapping> $mappings
      * @param AgentContext $context the facts stated to the agents, each told its own
      */
     public function __construct(
+        #[\SensitiveParameter] string $secret,
         private RunScope $scope = new RunScope(),
         private ?ResumableToolLocator $resumableTools = null,
         private iterable $mappings = [],
@@ -55,6 +61,7 @@ final readonly class AgUi
         private (NormalizerInterface&DenormalizerInterface)|null $serializer = null,
         private ?ValidatorInterface $validator = null,
     ) {
+        $this->interrupts = new InterruptSigner($secret);
     }
 
     /**
@@ -86,6 +93,7 @@ final readonly class AgUi
             $this->context->for($agent->getName()),
             $this->stream,
             $this->converter,
+            $this->interrupts,
         );
 
         return $run->run($input, $options);
