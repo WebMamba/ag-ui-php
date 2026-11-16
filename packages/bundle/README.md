@@ -184,5 +184,5 @@ Resources
 
  * [AG-UI protocol](https://docs.ag-ui.com)
  * [Glossary](https://github.com/WebMamba/ag-ui-php/blob/main/CONTEXT.md) and [design decisions](https://github.com/WebMamba/ag-ui-php/tree/main/docs/adr)
- * [Passage Agent](https://github.com/WebMamba/turbo-agent), a demo application
+ * [Passage Agent](https://github.com/WebMamba/demo-ag-ui), a demo application
  * [Report issues and send pull requests](https://github.com/WebMamba/ag-ui-php) in the main repository

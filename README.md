@@ -12,7 +12,7 @@ it lets a PHP application expose an agent to any AG-UI client.
 
 In a Symfony application, install the bundle; it brings the other two.
 
-See it running in [Passage Agent](https://github.com/WebMamba/turbo-agent), an
+See it running in [Passage Agent](https://github.com/WebMamba/demo-ag-ui), an
 ocean-passage navigator built on it.
 
 Development
