@@ -6,8 +6,8 @@ SSE encoding, and the verification of an event stream — every event is validat
 the point of emission, against AG-UI 1.0.
 
 This is the protocol alone, for any PHP agent. To run a Symfony AI agent, see
-[`webmamba/ag-ui-symfony-ai-bridge`](../symfony-ai-bridge); in a Symfony
-application, [`webmamba/ag-ui-bundle`](../bundle).
+[`webmamba/ag-ui-symfony-ai-bridge`](https://github.com/WebMamba/ag-ui-symfony-ai-bridge); in a Symfony
+application, [`webmamba/ag-ui-bundle`](https://github.com/WebMamba/ag-ui-bundle).
 
 Installation
 ------------
@@ -35,5 +35,5 @@ Resources
 ---------
 
  * [AG-UI protocol](https://docs.ag-ui.com)
- * [Glossary](../../CONTEXT.md) and [design decisions](../../docs/adr)
- * [Report issues](https://github.com/WebMamba/ag-ui-php/issues)
+ * [Glossary](https://github.com/WebMamba/ag-ui-php/blob/main/CONTEXT.md) and [design decisions](https://github.com/WebMamba/ag-ui-php/tree/main/docs/adr)
+ * [Report issues and send pull requests](https://github.com/WebMamba/ag-ui-php) in the main repository

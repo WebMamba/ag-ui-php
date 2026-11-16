@@ -14,7 +14,7 @@ use Symfony\Component\Serializer\Encoder\JsonEncode;
  * An AG-UI event stream as a response: one Server-Sent Event per AG-UI event, flushed as
  * it is produced, and no longer produced once the client is gone.
  *
- *     return new AgUiResponse($agUiAgent->run($input));
+ *     return new AgUiResponse($agUi->run($input, $navigator));
  */
 final class AgUiResponse extends EventStreamResponse
 {
