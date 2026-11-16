@@ -1,0 +1,59 @@
+name: Split
+
+# Each package is published from its own read-only repository: main and every
+# tag are pushed there, so Packagist sees webmamba/ag-ui, webmamba/ag-ui-bundle
+# and webmamba/ag-ui-symfony-ai-bridge as ordinary packages.
+
+on:
+    push:
+        branches: [main]
+        tags: ['v*']
+
+permissions:
+    contents: read
+
+concurrency:
+    group: split-${{ github.ref }}
+
+jobs:
+    split:
+        name: ${{ matrix.package.repository }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                package:
+                    - { directory: packages/core, repository: ag-ui }
+                    - { directory: packages/symfony-ai-bridge, repository: ag-ui-symfony-ai-bridge }
+                    - { directory: packages/bundle, repository: ag-ui-bundle }
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Split the branch
+              if: github.ref_type == 'branch'
+              uses: danharrin/monorepo-split-github-action@ac9845270ef47266435b4f124b133a323619e738 # v2.3.0
+              env:
+                  GITHUB_TOKEN: ${{ secrets.SPLIT_TOKEN }}
+              with:
+                  package_directory: ${{ matrix.package.directory }}
+                  repository_organization: WebMamba
+                  repository_name: ${{ matrix.package.repository }}
+                  branch: main
+                  user_name: github-actions[bot]
+                  user_email: 41898282+github-actions[bot]@users.noreply.github.com
+
+            - name: Split the tag
+              if: github.ref_type == 'tag'
+              uses: danharrin/monorepo-split-github-action@ac9845270ef47266435b4f124b133a323619e738 # v2.3.0
+              env:
+                  GITHUB_TOKEN: ${{ secrets.SPLIT_TOKEN }}
+              with:
+                  package_directory: ${{ matrix.package.directory }}
+                  repository_organization: WebMamba
+                  repository_name: ${{ matrix.package.repository }}
+                  branch: main
+                  tag: ${{ github.ref_name }}
+                  user_name: github-actions[bot]
+                  user_email: 41898282+github-actions[bot]@users.noreply.github.com
